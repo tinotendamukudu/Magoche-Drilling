@@ -1,42 +1,84 @@
 <?php
-  /**
-  * Requires the "PHP Email Form" library
-  * The "PHP Email Form" library is available only in the pro version of the template
-  * The library should be uploaded to: vendor/php-email-form/php-email-form.php
-  * For more info and help: https://bootstrapmade.com/php-email-form/
-  */
 
-  // Replace contact@example.com with your real receiving email address
-  $receiving_email_address = 'contact@example.com';
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
-  if( file_exists($php_email_form = '../assets/vendor/php-email-form/php-email-form.php' )) {
-    include( $php_email_form );
-  } else {
-    die( 'Unable to load the "PHP Email Form" Library!');
-  }
+require '../vendor/autoload.php'; // Ensure this path is correct
 
-  $contact = new PHP_Email_Form;
-  $contact->ajax = true;
-  
-  $contact->to = $receiving_email_address;
-  $contact->from_name = $_POST['name'];
-  $contact->from_email = $_POST['email'];
-  $contact->subject = 'Request for a quote';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Retrieve form data
+    $name = $_POST["name"];
+    $email = $_POST["email"];
+    $phone = $_POST["phone"];
+    $message = $_POST["message"];
 
-  // Uncomment below code if you want to use SMTP to send emails. You need to enter your correct SMTP credentials
-  /*
-  $contact->smtp = array(
-    'host' => 'example.com',
-    'username' => 'example',
-    'password' => 'pass',
-    'port' => '587'
-  );
-  */
+    // Initialize error array
+    $errors = [];
 
-  $contact->add_message( $_POST['name'], 'From');
-  $contact->add_message( $_POST['email'], 'Email');
-  $contact->add_message( $_POST['phone'], 'Phone');
-  $contact->add_message( $_POST['message'], 'Message', 10);
+    // Validate form data
+    if (empty($name)) {
+        $errors[] = "Name is required.";
+    }
+    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "Invalid email address.";
+    }
+    if (empty($phone)) {
+        $errors[] = "Phone number is required.";
+    }
+    if (empty($message)) {
+        $errors[] = "Message is required.";
+    }
 
-  echo $contact->send();
+    // If there are validation errors, display them and stop further processing
+    if (!empty($errors)) {
+        foreach ($errors as $error) {
+            echo '<div class="alert alert-danger" role="alert">' . $error . '</div>';
+        }
+        exit; // Stop further processing
+    }
+
+    // If all validations pass, send the email
+    $subject = "New Form Submission";
+    $body = "Name: $name\nEmail: $email\nPhone: $phone\nMessage: $message";
+
+    // Your email address to receive the form submissions
+    $to = "mukudutinotenda@gmail.com";
+
+    // Initialize PHPMailer
+    $mail = new PHPMailer(true);
+
+    try {
+        // Server settings
+        $mail->isSMTP();
+        $mail->Host       = 'smtp.gmail.com'; // Gmail SMTP server
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'mukudutinotenda@gmail.com'; // Your Gmail address
+        $mail->Password   = 'lvrn rsas kppe mdil'; // Your Gmail password or App password
+        $mail->SMTPSecure = 'tls'; // Enable TLS encryption
+        $mail->Port       = 587; // TCP port to connect to
+
+        // Recipients
+        $mail->setFrom($email, $name);
+        $mail->addAddress($to);
+
+        // Content
+        $mail->isHTML(false);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+
+        $mail->send();
+        // echo '<div class="alert alert-success" role="alert">Form submitted successfully! Your message has been sent.</div>';
+
+    } catch (Exception $e) {
+        echo '<div class="alert alert-danger" role="alert">';
+        echo 'Error sending the email. Please try again later. Error: ' . $mail->ErrorInfo;
+        echo '</div>';
+    }
+
+} else {
+    // If the form is accessed directly, redirect to the homepage or display an error message
+    header("Location: /index.html");
+    exit;
+}
+
 ?>
