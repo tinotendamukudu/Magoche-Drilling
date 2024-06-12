@@ -67,6 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mail->Body    = $body;
 
         $mail->send();
+        echo 'OK'; // Ensure this is the exact response expected by your JavaScript
+        exit;
+
         // echo '<div class="alert alert-success" role="alert">Form submitted successfully! Your message has been sent.</div>';
 
     } catch (Exception $e) {

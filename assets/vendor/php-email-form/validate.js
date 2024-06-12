@@ -67,8 +67,9 @@
       }
     })
     .catch((error) => {
+      console.error('Error details:', error);
       displayError(thisForm, error);
-    });
+    });    
   }
 
   function displayError(thisForm, error) {
